@@ -1,6 +1,6 @@
 {
   "name": "@vazylin1124/mongo-mcp",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "MongoDB Management Control Panel for Cursor",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

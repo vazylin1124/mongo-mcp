@@ -56,8 +56,21 @@ class MongoMCP {
   private client: MongoClient | null = null;
   private isConnecting: boolean = false;
   private connectionPromise: Promise<MongoClient> | null = null;
+  private maxRetries: number = 3;
+  private retryDelay: number = 1000; // 1 second
 
-  private constructor() {}
+  private constructor() {
+    // 添加进程退出时的清理
+    process.on('SIGINT', async () => {
+      await this.close();
+      process.exit(0);
+    });
+
+    process.on('SIGTERM', async () => {
+      await this.close();
+      process.exit(0);
+    });
+  }
 
   public static getInstance(): MongoMCP {
     if (!MongoMCP.instance) {
@@ -66,12 +79,38 @@ class MongoMCP {
     return MongoMCP.instance;
   }
 
-  private async getClient(connectionString: string): Promise<MongoClient> {
-    if (!this.client || !this.connectionPromise) {
-      this.connectionPromise = new MongoClient(connectionString).connect();
-      this.client = await this.connectionPromise;
+  private async delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private async getClient(connectionString: string, retryCount: number = 0): Promise<MongoClient> {
+    try {
+      if (!this.client || !this.connectionPromise) {
+        const options = {
+          connectTimeoutMS: 5000,
+          socketTimeoutMS: 30000,
+          serverSelectionTimeoutMS: 5000,
+          keepAlive: true,
+        };
+        
+        this.connectionPromise = new MongoClient(connectionString, options).connect();
+        this.client = await this.connectionPromise;
+      }
+
+      // 测试连接是否有效
+      await this.client.db('admin').command({ ping: 1 });
+      
+      return this.client;
+    } catch (error: any) {
+      this.client = null;
+      this.connectionPromise = null;
+
+      if (retryCount < this.maxRetries) {
+        await this.delay(this.retryDelay);
+        return this.getClient(connectionString, retryCount + 1);
+      }
+      throw error;
     }
-    return this.client;
   }
 
   async connect(params: MCPConfig): Promise<MCPResponse> {
@@ -148,26 +187,19 @@ class MongoMCP {
     }
   }
 
-  // 这个方法现在只在进程退出时调用
   async close(): Promise<void> {
     if (this.client) {
-      await this.client.close();
-      this.client = null;
-      this.connectionPromise = null;
+      try {
+        await this.client.close(true);
+      } catch (error) {
+        // 忽略关闭时的错误
+      } finally {
+        this.client = null;
+        this.connectionPromise = null;
+      }
     }
   }
 }
 
 // 使用单例模式
-export const mcp = MongoMCP.getInstance();
-
-// 确保在进程退出时关闭连接
-process.on('SIGINT', async () => {
-  await mcp.close();
-  process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-  await mcp.close();
-  process.exit(0);
-}); 
+export const mcp = MongoMCP.getInstance(); 
