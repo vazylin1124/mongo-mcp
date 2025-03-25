@@ -1,11 +1,11 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient, Db, Collection } from 'mongodb';
 import * as dotenv from 'dotenv';
 import { URL } from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
 import { homedir } from 'os';
 
-interface MCPConfig {
+interface MongoConfig {
   connectionString: string;
   database: string;
   collection?: string;
@@ -18,7 +18,7 @@ interface SmitheryConfig {
   version: string;
   type: string;
   client: string;
-  config: MCPConfig;
+  config: MongoConfig;
 }
 
 interface SmitheryResponse {
@@ -54,6 +54,7 @@ const SMITHERY_CONFIG: SmitheryConfig = {
 class MongoMCP {
   private static instance: MongoMCP;
   private client: MongoClient | null = null;
+  private db: Db | null = null;
   private isConnecting: boolean = false;
   private connectionPromise: Promise<MongoClient> | null = null;
   private maxRetries: number = 3;
@@ -113,90 +114,46 @@ class MongoMCP {
     }
   }
 
-  async connect(params: MCPConfig): Promise<MCPResponse> {
+  async connect(config: MongoConfig): Promise<{ success: boolean; message: string }> {
     try {
-      if (this.isConnecting) {
-        return {
-          content: [{
-            type: 'text',
-            text: '连接正在进行中，请稍候...'
-          }]
-        };
+      this.client = await MongoClient.connect(config.connectionString);
+      this.db = this.client.db(config.database);
+      return {
+        success: true,
+        message: `Successfully connected to database: ${config.database}`
+      };
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to connect to MongoDB: ${error.message}`);
       }
-
-      this.isConnecting = true;
-      const client = await this.getClient(params.connectionString);
-      const db = client.db(params.database);
-      await db.command({ ping: 1 });
-
-      const url = new URL(params.connectionString);
-      const host = url.hostname;
-
-      this.isConnecting = false;
-      return {
-        content: [{
-          type: 'text',
-          text: `成功连接到 MongoDB 数据库 '${params.database}' (${host})`
-        }]
-      };
-    } catch (error: any) {
-      this.isConnecting = false;
-      this.client = null;
-      this.connectionPromise = null;
-      return {
-        content: [{
-          type: 'text',
-          text: `连接 MongoDB 失败: ${error.message || error}`
-        }],
-        isError: true
-      };
+      throw new Error('Failed to connect to MongoDB: Unknown error');
     }
   }
 
-  async find(params: MCPConfig): Promise<MCPResponse> {
-    try {
-      const client = await this.getClient(params.connectionString);
-      const db = client.db(params.database);
-      const collection = db.collection(params.collection || 'default');
-      
-      const results = await collection
-        .find(params.query || {})
-        .limit(params.limit || 10)
-        .toArray();
+  async find(config: MongoConfig): Promise<any[]> {
+    if (!this.client || !this.db) {
+      throw new Error('Not connected to MongoDB. Call connect() first.');
+    }
 
-      return {
-        content: [{
-          type: 'text',
-          text: `在集合 '${params.collection}' 中找到 ${results.length} 个文档:\n\n${JSON.stringify(results, null, 2)}`
-        }]
-      };
-    } catch (error: any) {
-      // 如果是连接错误，尝试重新连接
-      if (error.name === 'MongoNotConnectedError' || error.message?.includes('closed')) {
-        this.client = null;
-        this.connectionPromise = null;
-        return this.find(params);
+    try {
+      const collection: Collection = this.db.collection(config.collection || 'default');
+      return await collection
+        .find(config.query || {})
+        .limit(config.limit || 10)
+        .toArray();
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to execute find operation: ${error.message}`);
       }
-      return {
-        content: [{
-          type: 'text',
-          text: `查询文档失败: ${error.message || error}`
-        }],
-        isError: true
-      };
+      throw new Error('Failed to execute find operation: Unknown error');
     }
   }
 
   async close(): Promise<void> {
     if (this.client) {
-      try {
-        await this.client.close(true);
-      } catch (error) {
-        // 忽略关闭时的错误
-      } finally {
-        this.client = null;
-        this.connectionPromise = null;
-      }
+      await this.client.close();
+      this.client = null;
+      this.db = null;
     }
   }
 }

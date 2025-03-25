@@ -65,12 +65,21 @@ async function main() {
         switch (command) {
             case 'connect':
                 console.error('Connecting to MongoDB...');
-                const connectResult = await index_1.mcp.connect(config);
+                const connectResult = await index_1.mcp.connect({
+                    connectionString: config.connectionString,
+                    database: config.database
+                });
                 console.log(JSON.stringify(connectResult, null, 2));
                 break;
             case 'find':
                 console.error('Querying MongoDB...');
-                const findResult = await index_1.mcp.find(config);
+                const findResult = await index_1.mcp.find({
+                    connectionString: config.connectionString,
+                    database: config.database,
+                    collection: config.collection,
+                    query: config.query,
+                    limit: config.limit
+                });
                 console.log(JSON.stringify(findResult, null, 2));
                 break;
             default:

@@ -1,6 +1,6 @@
 {
   "name": "@vazylin1124/mongo-mcp",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "MongoDB Management Control Panel for Cursor",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,14 +32,14 @@
     "ts-node": "^10.9.1",
     "@types/mongodb": "^4.0.7"
   },
-  "mcp": {
+  "smithery": {
     "name": "mongo-mcp",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "type": "mcp",
     "connection": {
       "type": "mongodb",
       "config": {
-        "connectionString": {
+        "uri": {
           "type": "string",
           "description": "MongoDB 连接字符串",
           "required": true,
@@ -74,7 +74,7 @@
     "commands": {
       "connect": {
         "description": "连接到 MongoDB 数据库",
-        "parameters": ["connectionString", "database"]
+        "parameters": []
       },
       "find": {
         "description": "查询集合中的文档",

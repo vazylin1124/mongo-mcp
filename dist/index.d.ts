@@ -1,20 +1,14 @@
-interface MCPConfig {
+interface MongoConfig {
     connectionString: string;
     database: string;
     collection?: string;
     query?: Record<string, any>;
     limit?: number;
 }
-interface MCPResponse {
-    content: Array<{
-        type: string;
-        text: string;
-    }>;
-    isError?: boolean;
-}
 declare class MongoMCP {
     private static instance;
     private client;
+    private db;
     private isConnecting;
     private connectionPromise;
     private maxRetries;
@@ -23,8 +17,11 @@ declare class MongoMCP {
     static getInstance(): MongoMCP;
     private delay;
     private getClient;
-    connect(params: MCPConfig): Promise<MCPResponse>;
-    find(params: MCPConfig): Promise<MCPResponse>;
+    connect(config: MongoConfig): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    find(config: MongoConfig): Promise<any[]>;
     close(): Promise<void>;
 }
 export declare const mcp: MongoMCP;

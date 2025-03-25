@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mcp = void 0;
 const mongodb_1 = require("mongodb");
-const url_1 = require("url");
 const SMITHERY_CONFIG = {
     name: "mongo-mcp-smithery",
     version: "1.0.0",
@@ -19,6 +18,7 @@ const SMITHERY_CONFIG = {
 class MongoMCP {
     constructor() {
         this.client = null;
+        this.db = null;
         this.isConnecting = false;
         this.connectionPromise = null;
         this.maxRetries = 3;
@@ -68,88 +68,45 @@ class MongoMCP {
             throw error;
         }
     }
-    async connect(params) {
+    async connect(config) {
         try {
-            if (this.isConnecting) {
-                return {
-                    content: [{
-                            type: 'text',
-                            text: '连接正在进行中，请稍候...'
-                        }]
-                };
-            }
-            this.isConnecting = true;
-            const client = await this.getClient(params.connectionString);
-            const db = client.db(params.database);
-            await db.command({ ping: 1 });
-            const url = new url_1.URL(params.connectionString);
-            const host = url.hostname;
-            this.isConnecting = false;
+            this.client = await mongodb_1.MongoClient.connect(config.connectionString);
+            this.db = this.client.db(config.database);
             return {
-                content: [{
-                        type: 'text',
-                        text: `成功连接到 MongoDB 数据库 '${params.database}' (${host})`
-                    }]
+                success: true,
+                message: `Successfully connected to database: ${config.database}`
             };
         }
         catch (error) {
-            this.isConnecting = false;
-            this.client = null;
-            this.connectionPromise = null;
-            return {
-                content: [{
-                        type: 'text',
-                        text: `连接 MongoDB 失败: ${error.message || error}`
-                    }],
-                isError: true
-            };
+            if (error instanceof Error) {
+                throw new Error(`Failed to connect to MongoDB: ${error.message}`);
+            }
+            throw new Error('Failed to connect to MongoDB: Unknown error');
         }
     }
-    async find(params) {
-        var _a;
+    async find(config) {
+        if (!this.client || !this.db) {
+            throw new Error('Not connected to MongoDB. Call connect() first.');
+        }
         try {
-            const client = await this.getClient(params.connectionString);
-            const db = client.db(params.database);
-            const collection = db.collection(params.collection || 'default');
-            const results = await collection
-                .find(params.query || {})
-                .limit(params.limit || 10)
+            const collection = this.db.collection(config.collection || 'default');
+            return await collection
+                .find(config.query || {})
+                .limit(config.limit || 10)
                 .toArray();
-            return {
-                content: [{
-                        type: 'text',
-                        text: `在集合 '${params.collection}' 中找到 ${results.length} 个文档:\n\n${JSON.stringify(results, null, 2)}`
-                    }]
-            };
         }
         catch (error) {
-            // 如果是连接错误，尝试重新连接
-            if (error.name === 'MongoNotConnectedError' || ((_a = error.message) === null || _a === void 0 ? void 0 : _a.includes('closed'))) {
-                this.client = null;
-                this.connectionPromise = null;
-                return this.find(params);
+            if (error instanceof Error) {
+                throw new Error(`Failed to execute find operation: ${error.message}`);
             }
-            return {
-                content: [{
-                        type: 'text',
-                        text: `查询文档失败: ${error.message || error}`
-                    }],
-                isError: true
-            };
+            throw new Error('Failed to execute find operation: Unknown error');
         }
     }
     async close() {
         if (this.client) {
-            try {
-                await this.client.close(true);
-            }
-            catch (error) {
-                // 忽略关闭时的错误
-            }
-            finally {
-                this.client = null;
-                this.connectionPromise = null;
-            }
+            await this.client.close();
+            this.client = null;
+            this.db = null;
         }
     }
 }
