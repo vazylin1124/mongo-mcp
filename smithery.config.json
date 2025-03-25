@@ -2,12 +2,14 @@
   "mcps": {
     "mongo": {
       "package": "@vazylin1124/mongo-mcp",
-      "config": {
-        "connectionString": "mongodb://localhost:27017",
-        "database": "test",
-        "collection": "default",
-        "query": {},
-        "limit": 10
+      "connections": {
+        "default": {
+          "uri": "mongodb://localhost:27017",
+          "database": "test",
+          "collection": "default",
+          "query": {},
+          "limit": 10
+        }
       }
     }
   }
