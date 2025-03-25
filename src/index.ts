@@ -52,62 +52,48 @@ const SMITHERY_CONFIG: SmitheryConfig = {
 };
 
 class MongoMCP {
+  private static instance: MongoMCP;
   private client: MongoClient | null = null;
-  private config: SmitheryConfig;
-  private configPath: string;
-  private connectionString: string = '';
-  private database: string = '';
+  private isConnecting: boolean = false;
+  private connectionPromise: Promise<MongoClient> | null = null;
 
-  constructor() {
-    this.config = SMITHERY_CONFIG;
-    this.configPath = path.join(homedir(), '.smithery', 'mcp', 'mongo-mcp.json');
-    this.loadConfig();
+  private constructor() {}
+
+  public static getInstance(): MongoMCP {
+    if (!MongoMCP.instance) {
+      MongoMCP.instance = new MongoMCP();
+    }
+    return MongoMCP.instance;
   }
 
-  private loadConfig(): void {
-    try {
-      if (fs.existsSync(this.configPath)) {
-        this.config = JSON.parse(fs.readFileSync(this.configPath, 'utf8'));
-      }
-    } catch (error) {
-      console.error('Error loading config:', error);
+  private async getClient(connectionString: string): Promise<MongoClient> {
+    if (!this.client || !this.connectionPromise) {
+      this.connectionPromise = new MongoClient(connectionString).connect();
+      this.client = await this.connectionPromise;
     }
-  }
-
-  private saveConfig(): void {
-    try {
-      const configDir = path.dirname(this.configPath);
-      if (!fs.existsSync(configDir)) {
-        fs.mkdirSync(configDir, { recursive: true });
-      }
-      fs.writeFileSync(this.configPath, JSON.stringify(this.config, null, 2));
-    } catch (error) {
-      console.error('Error saving config:', error);
-    }
-  }
-
-  async ensureConnection(params: MCPConfig): Promise<void> {
-    if (this.connectionString !== params.connectionString || !this.client) {
-      if (this.client) {
-        await this.client.close();
-      }
-      this.client = new MongoClient(params.connectionString);
-      await this.client.connect();
-      this.connectionString = params.connectionString;
-      this.database = params.database;
-    }
+    return this.client;
   }
 
   async connect(params: MCPConfig): Promise<MCPResponse> {
     try {
-      await this.ensureConnection(params);
-      
-      const db = this.client!.db(params.database);
+      if (this.isConnecting) {
+        return {
+          content: [{
+            type: 'text',
+            text: '连接正在进行中，请稍候...'
+          }]
+        };
+      }
+
+      this.isConnecting = true;
+      const client = await this.getClient(params.connectionString);
+      const db = client.db(params.database);
       await db.command({ ping: 1 });
 
       const url = new URL(params.connectionString);
       const host = url.hostname;
 
+      this.isConnecting = false;
       return {
         content: [{
           type: 'text',
@@ -115,10 +101,9 @@ class MongoMCP {
         }]
       };
     } catch (error: any) {
+      this.isConnecting = false;
       this.client = null;
-      this.connectionString = '';
-      this.database = '';
-      
+      this.connectionPromise = null;
       return {
         content: [{
           type: 'text',
@@ -131,10 +116,10 @@ class MongoMCP {
 
   async find(params: MCPConfig): Promise<MCPResponse> {
     try {
-      await this.ensureConnection(params);
-
-      const db = this.client!.db(params.database);
+      const client = await this.getClient(params.connectionString);
+      const db = client.db(params.database);
       const collection = db.collection(params.collection || 'default');
+      
       const results = await collection
         .find(params.query || {})
         .limit(params.limit || 10)
@@ -147,13 +132,12 @@ class MongoMCP {
         }]
       };
     } catch (error: any) {
-      if (error.message && error.message.includes('topology')) {
+      // 如果是连接错误，尝试重新连接
+      if (error.name === 'MongoNotConnectedError' || error.message?.includes('closed')) {
         this.client = null;
-        this.connectionString = '';
-        this.database = '';
+        this.connectionPromise = null;
         return this.find(params);
       }
-      
       return {
         content: [{
           type: 'text',
@@ -164,25 +148,26 @@ class MongoMCP {
     }
   }
 
+  // 这个方法现在只在进程退出时调用
   async close(): Promise<void> {
     if (this.client) {
       await this.client.close();
       this.client = null;
-      this.connectionString = '';
-      this.database = '';
+      this.connectionPromise = null;
     }
   }
 }
 
-process.on('exit', async () => {
-  const instance = mcp as MongoMCP;
-  await instance.close();
-});
+// 使用单例模式
+export const mcp = MongoMCP.getInstance();
 
+// 确保在进程退出时关闭连接
 process.on('SIGINT', async () => {
-  const instance = mcp as MongoMCP;
-  await instance.close();
+  await mcp.close();
   process.exit(0);
 });
 
-export const mcp = new MongoMCP(); 
+process.on('SIGTERM', async () => {
+  await mcp.close();
+  process.exit(0);
+}); 

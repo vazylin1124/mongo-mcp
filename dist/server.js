@@ -45,17 +45,27 @@ async function main() {
             query: {},
             limit: 10
         };
+        console.log('Connecting with config:', {
+            ...config,
+            connectionString: '***hidden***' // 隐藏敏感信息
+        });
         // 测试连接
         const connectResult = await index_1.mcp.connect(config);
         console.log('Connection result:', connectResult);
-        // 测试查询
-        const findResult = await index_1.mcp.find(config);
-        console.log('Find result:', findResult);
+        if (!connectResult.isError) {
+            // 测试查询
+            console.log('Attempting to query collection:', config.collection);
+            const findResult = await index_1.mcp.find(config);
+            console.log('Find result:', findResult);
+        }
         // 关闭连接
         await index_1.mcp.close();
     }
     catch (error) {
-        console.error('Error:', error);
+        console.error('Detailed error:', error);
+        if (error instanceof Error) {
+            console.error('Error stack:', error.stack);
+        }
         process.exit(1);
     }
 }

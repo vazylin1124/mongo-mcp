@@ -5,7 +5,7 @@ interface MCPConfig {
     query?: Record<string, any>;
     limit?: number;
 }
-interface SmitheryResponse {
+interface MCPResponse {
     content: Array<{
         type: string;
         text: string;
@@ -13,14 +13,15 @@ interface SmitheryResponse {
     isError?: boolean;
 }
 declare class MongoMCP {
+    private static instance;
     private client;
-    private config;
-    private configPath;
-    constructor();
-    private loadConfig;
-    private saveConfig;
-    connect(params: MCPConfig): Promise<SmitheryResponse>;
-    find(params: MCPConfig): Promise<SmitheryResponse>;
+    private isConnecting;
+    private connectionPromise;
+    private constructor();
+    static getInstance(): MongoMCP;
+    private getClient;
+    connect(params: MCPConfig): Promise<MCPResponse>;
+    find(params: MCPConfig): Promise<MCPResponse>;
     close(): Promise<void>;
 }
 export declare const mcp: MongoMCP;
