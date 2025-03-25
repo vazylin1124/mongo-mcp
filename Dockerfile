@@ -8,4 +8,6 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-CMD ["node", "dist/server.js"] 
+ENV NODE_ENV=production
+
+ENTRYPOINT ["node", "dist/server.js"] 
