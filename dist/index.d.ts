@@ -6,17 +6,8 @@ interface ConnectionConfig {
     limit?: number;
 }
 declare class MongoMCP {
-    private static instance;
     private client;
     private db;
-    private isConnecting;
-    private connectionPromise;
-    private maxRetries;
-    private retryDelay;
-    private constructor();
-    static getInstance(): MongoMCP;
-    private delay;
-    private getClient;
     connect(config: ConnectionConfig): Promise<{
         success: boolean;
         message: string;

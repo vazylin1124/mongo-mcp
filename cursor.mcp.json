@@ -4,13 +4,15 @@
       "command": "node",
       "args": ["./node_modules/@vazylin1124/mongo-mcp/dist/server.js"],
       "package": "@vazylin1124/mongo-mcp",
-      "version": "1.0.6",
-      "config": {
-        "connectionString": "mongodb://root:2yyMXA5tdkP2WU8mq9Z@dds-uf6abe1d2a6195f41548-pub.mongodb.rds.aliyuncs.com:3717/admin?authSource=admin",
-        "database": "mongodb_wtzw_chapter_content_diff",
-        "collection": "default",
-        "query": {},
-        "limit": 10
+      "version": "1.0.14",
+      "connections": {
+        "default": {
+          "uri": "mongodb://root:2yyMXA5tdkP2WU8mq9Z@dds-uf6abe1d2a6195f41548-pub.mongodb.rds.aliyuncs.com:3717/admin?authSource=admin",
+          "database": "mongodb_wtzw_chapter_content_diff",
+          "collection": "default",
+          "query": {},
+          "limit": 10
+        }
       }
     }
   }
