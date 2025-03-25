@@ -1,0 +1,38 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - uri
+      - database
+    properties:
+      uri:
+        type: string
+        description: MongoDB connection string
+      database:
+        type: string
+        description: Database name
+      collection:
+        type: string
+        description: Collection name
+        default: default
+      query:
+        type: object
+        description: Query conditions
+        default: {}
+      limit:
+        type: number
+        description: Maximum number of documents to return
+        default: 10
+  commandFunction: |
+    (config) => ({
+      command: 'node',
+      args: ['dist/server.js'],
+      env: {
+        MONGODB_URI: config.uri,
+        MONGODB_DATABASE: config.database,
+        MONGODB_COLLECTION: config.collection,
+        MONGODB_QUERY: JSON.stringify(config.query),
+        MONGODB_LIMIT: config.limit.toString()
+      }
+    }) 
