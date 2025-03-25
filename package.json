@@ -1,6 +1,6 @@
 {
   "name": "@vazylin1124/mongo-mcp",
-  "version": "1.0.34",
+  "version": "1.0.33",
   "description": "MongoDB MCP for Cursor",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,49 +28,49 @@
   },
   "smithery": {
     "name": "mongo-mcp",
-    "version": "1.0.33",
+    "version": "1.0.30",
     "type": "mcp",
     "startCommand": {
       "type": "stdio",
       "configSchema": {
         "type": "object",
         "required": [
-          "mongoUri",
-          "mongoDatabase"
+          "uri",
+          "database"
         ],
         "properties": {
-          "mongoUri": {
+          "uri": {
             "type": "string",
             "description": "MongoDB connection string"
           },
-          "mongoDatabase": {
+          "database": {
             "type": "string",
-            "description": "MongoDB database name"
+            "description": "Database name"
           },
-          "mongoCollection": {
+          "collection": {
             "type": "string",
-            "description": "MongoDB collection name",
+            "description": "Collection name",
             "default": "default"
           },
-          "mongoQuery": {
+          "query": {
             "type": "object",
-            "description": "MongoDB query conditions",
+            "description": "Query conditions",
             "default": {}
           },
-          "mongoLimit": {
+          "limit": {
             "type": "number",
             "description": "Maximum number of documents to return",
             "default": 10
           }
         }
       },
-      "commandFunction": "(config) => ({command: 'node',args: ['dist/server.js'],env: {MONGODB_URI: config.mongoUri,MONGODB_DATABASE: config.mongoDatabase,MONGODB_COLLECTION: config.mongoCollection,MONGODB_QUERY: JSON.stringify(config.mongoQuery),MONGODB_LIMIT: config.mongoLimit.toString()}})",
+      "commandFunction": "(config) => ({command: 'node',args: ['dist/server.js'],env: {MONGODB_URI: config.uri,MONGODB_DATABASE: config.database,MONGODB_COLLECTION: config.collection,MONGODB_QUERY: JSON.stringify(config.query),MONGODB_LIMIT: config.limit.toString()}})",
       "exampleConfig": {
-        "mongoUri": "mongodb://localhost:27017",
-        "mongoDatabase": "test",
-        "mongoCollection": "default",
-        "mongoQuery": {},
-        "mongoLimit": 10
+        "uri": "mongodb://localhost:27017",
+        "database": "test",
+        "collection": "default",
+        "query": {},
+        "limit": 10
       }
     }
   }
