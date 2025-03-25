@@ -13,7 +13,7 @@ async function main() {
 
   // 从环境变量构建配置
   const config = {
-    connectionString: process.env.MONGODB_URI || '',
+    uri: process.env.MONGODB_URI || '',
     database: process.env.MONGODB_DATABASE || '',
     collection: process.env.MONGODB_COLLECTION || 'default',
     query: process.env.MONGODB_QUERY ? JSON.parse(process.env.MONGODB_QUERY) : {},
@@ -21,7 +21,7 @@ async function main() {
   };
 
   // 检查必需的配置
-  if (!config.connectionString) {
+  if (!config.uri) {
     console.error('Error: MongoDB connection string is required');
     console.error('Please set MONGODB_URI environment variable');
     process.exit(1);
@@ -37,22 +37,13 @@ async function main() {
     switch (command) {
       case 'connect':
         console.error('Connecting to MongoDB...');
-        const connectResult = await mcp.connect({
-          connectionString: config.connectionString,
-          database: config.database
-        });
+        const connectResult = await mcp.connect(config);
         console.log(JSON.stringify(connectResult, null, 2));
         break;
 
       case 'find':
         console.error('Querying MongoDB...');
-        const findResult = await mcp.find({
-          connectionString: config.connectionString,
-          database: config.database,
-          collection: config.collection,
-          query: config.query,
-          limit: config.limit
-        });
+        const findResult = await mcp.find(config);
         console.log(JSON.stringify(findResult, null, 2));
         break;
 

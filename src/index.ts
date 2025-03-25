@@ -5,8 +5,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { homedir } from 'os';
 
-interface MongoConfig {
-  connectionString: string;
+interface ConnectionConfig {
+  uri: string;
   database: string;
   collection?: string;
   query?: Record<string, any>;
@@ -17,8 +17,21 @@ interface SmitheryConfig {
   name: string;
   version: string;
   type: string;
-  client: string;
-  config: MongoConfig;
+  connections: {
+    default: ConnectionConfig;
+  };
+  commands: {
+    connect: {
+      description: string;
+      connection: string;
+      parameters: string[];
+    };
+    find: {
+      description: string;
+      connection: string;
+      parameters: string[];
+    };
+  };
 }
 
 interface SmitheryResponse {
@@ -114,9 +127,9 @@ class MongoMCP {
     }
   }
 
-  async connect(config: MongoConfig): Promise<{ success: boolean; message: string }> {
+  async connect(config: ConnectionConfig): Promise<{ success: boolean; message: string }> {
     try {
-      this.client = await MongoClient.connect(config.connectionString);
+      this.client = await MongoClient.connect(config.uri);
       this.db = this.client.db(config.database);
       return {
         success: true,
@@ -130,7 +143,7 @@ class MongoMCP {
     }
   }
 
-  async find(config: MongoConfig): Promise<any[]> {
+  async find(config: ConnectionConfig): Promise<any[]> {
     if (!this.client || !this.db) {
       throw new Error('Not connected to MongoDB. Call connect() first.');
     }
