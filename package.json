@@ -1,0 +1,76 @@
+{
+  "name": "@vazylin1124/mongo-mcp",
+  "version": "1.0.0",
+  "description": "MongoDB Management Control Panel for Smithery",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "jest",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mongodb",
+    "mcp",
+    "smithery",
+    "database"
+  ],
+  "author": "vazylin1124",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "mongodb": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "typescript": "^5.0.3",
+    "ts-node": "^10.9.1",
+    "@types/mongodb": "^4.0.7"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "smithery": {
+    "type": "mcp",
+    "client": "claude",
+    "config": {
+      "connectionString": {
+        "type": "string",
+        "description": "MongoDB connection string",
+        "required": true
+      },
+      "database": {
+        "type": "string",
+        "description": "Database name",
+        "required": true
+      },
+      "collection": {
+        "type": "string",
+        "description": "Collection name",
+        "default": "default"
+      },
+      "query": {
+        "type": "object",
+        "description": "Query filter",
+        "default": {}
+      },
+      "limit": {
+        "type": "number",
+        "description": "Maximum number of documents to return",
+        "default": 10
+      }
+    },
+    "commands": {
+      "connect": {
+        "description": "Connect to MongoDB database",
+        "parameters": ["connectionString", "database"]
+      },
+      "find": {
+        "description": "Find documents in collection",
+        "parameters": ["connectionString", "database", "collection", "query", "limit"]
+      }
+    }
+  }
+}
