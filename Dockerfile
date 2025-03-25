@@ -18,16 +18,15 @@ RUN npm run build
 
 # 设置环境变量
 ENV NODE_ENV=production
-# 设置超时时间为 5 分钟（Smithery 要求）
+# 设置超时时间为 5 分钟（Smithery 的限制）
 ENV TIMEOUT=300000
 
 # 设置健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3000}/health || exit 1
 
-# 使用 node 用户运行，而不是 root
-USER node
+# 暴露默认端口（用于 WebSocket 连接）
+EXPOSE ${PORT:-3000}
 
-# 设置入口命令运行 MCP 服务器
-# 使用 --max-old-space-size=256 限制内存使用
-CMD ["node", "--max-old-space-size=256", "dist/server.js"] 
+# 设置启动命令
+CMD ["node", "dist/server.js"] 

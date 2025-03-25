@@ -2,7 +2,8 @@
 
 import { mcp } from './index';
 import * as dotenv from 'dotenv';
-import * as readline from 'readline';
+import * as http from 'http';
+import { WebSocket, WebSocketServer } from 'ws';
 
 // 加载环境变量
 dotenv.config();
@@ -25,26 +26,36 @@ interface JsonRpcResponse {
   };
 }
 
-async function main() {
-  // 创建 readline 接口
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    terminal: false
-  });
+// 创建 HTTP 服务器用于健康检查
+const server = http.createServer((req, res) => {
+  if (req.url === '/health') {
+    res.writeHead(200);
+    res.end('OK');
+    return;
+  }
+  res.writeHead(404);
+  res.end();
+});
+
+// 创建 WebSocket 服务器
+const wss = new WebSocketServer({ server });
+
+// 处理 WebSocket 连接
+wss.on('connection', (ws: WebSocket) => {
+  console.error('Client connected');
 
   // 处理 tools 命令
   if (process.argv.includes('--tools')) {
-    console.log(JSON.stringify(mcp.getToolList()));
-    process.exit(0);
+    ws.send(JSON.stringify(mcp.getToolList()));
+    return;
   }
 
-  // 处理 JSON-RPC 请求
-  rl.on('line', async (line) => {
+  // 处理消息
+  ws.on('message', async (data: Buffer) => {
     try {
-      const request: JsonRpcRequest = JSON.parse(line);
+      const request: JsonRpcRequest = JSON.parse(data.toString());
       const response = await mcp.handleJsonRpcRequest(request);
-      console.log(JSON.stringify(response));
+      ws.send(JSON.stringify(response));
     } catch (error) {
       const response: JsonRpcResponse = {
         jsonrpc: '2.0',
@@ -55,22 +66,21 @@ async function main() {
           data: error instanceof Error ? error.message : 'Unknown error'
         }
       };
-      console.log(JSON.stringify(response));
+      ws.send(JSON.stringify(response));
     }
   });
 
-  // 处理错误
-  rl.on('error', (error) => {
-    console.error('Error:', error);
-    process.exit(1);
+  // 处理关闭
+  ws.on('close', async () => {
+    console.error('Client disconnected');
+    await mcp.close();
   });
 
-  // 处理关闭
-  rl.on('close', async () => {
-    await mcp.close();
-    process.exit(0);
+  // 处理错误
+  ws.on('error', (error: Error) => {
+    console.error('WebSocket error:', error);
   });
-}
+});
 
 // 处理未捕获的错误
 process.on('uncaughtException', (error) => {
@@ -83,4 +93,8 @@ process.on('unhandledRejection', (error) => {
   process.exit(1);
 });
 
-main(); 
+// 启动服务器
+const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+server.listen(port, () => {
+  console.error(`Server is running on port ${port}`);
+}); 
