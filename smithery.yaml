@@ -1,38 +1,41 @@
-startCommand:
-  type: stdio
-  configSchema:
-    type: object
-    required:
-      - uri
-      - database
-    properties:
+name: mongo-mcp
+version: 1.0.22
+type: mcp
+connections:
+  default:
+    type: mongodb
+    config:
       uri:
         type: string
         description: MongoDB connection string
+        required: true
+        env: MONGODB_URI
       database:
         type: string
         description: Database name
+        required: true
+        env: MONGODB_DATABASE
       collection:
         type: string
         description: Collection name
         default: default
+        env: MONGODB_COLLECTION
       query:
         type: object
         description: Query conditions
         default: {}
+        env: MONGODB_QUERY
       limit:
         type: number
         description: Maximum number of documents to return
         default: 10
-  commandFunction: |
-    (config) => ({
-      command: 'node',
-      args: ['dist/server.js'],
-      env: {
-        MONGODB_URI: config.uri,
-        MONGODB_DATABASE: config.database,
-        MONGODB_COLLECTION: config.collection,
-        MONGODB_QUERY: JSON.stringify(config.query),
-        MONGODB_LIMIT: config.limit.toString()
-      }
-    }) 
+        env: MONGODB_LIMIT
+commands:
+  connect:
+    description: Connect to MongoDB database
+    connection: default
+    parameters: []
+  find:
+    description: Query documents in collection
+    connection: default
+    parameters: ["collection", "query", "limit"] 
