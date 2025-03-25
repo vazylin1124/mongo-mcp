@@ -1,8 +1,8 @@
 name: mongo-mcp
-version: 1.0.26
+version: 1.0.28
 type: mcp
 connections:
-  default:
+  - name: default
     type: mongodb
     config:
       uri:
@@ -31,11 +31,11 @@ connections:
         default: 10
         env: MONGODB_LIMIT
 commands:
-  connect:
+  - name: connect
     description: Connect to MongoDB database
     connection: default
     parameters: []
-  find:
+  - name: find
     description: Query documents in collection
     connection: default
     parameters: ["collection", "query", "limit"]
