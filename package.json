@@ -1,40 +1,34 @@
 {
   "name": "@vazylin1124/mongo-mcp",
   "version": "1.0.27",
-  "description": "MongoDB Management Control Panel for Cursor",
+  "description": "MongoDB MCP for Cursor",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "mongo-mcp": "./dist/server.js"
+    "mongo-mcp": "dist/server.js"
   },
   "scripts": {
     "build": "tsc && chmod +x dist/server.js",
-    "start": "ts-node src/server.ts",
-    "dev": "ts-node src/server.ts",
-    "test": "jest",
     "prepare": "npm run build"
   },
   "keywords": [
-    "mongodb",
-    "mcp",
     "cursor",
-    "database"
+    "mcp",
+    "mongodb"
   ],
   "author": "vazylin1124",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "^16.0.3",
-    "mongodb": "^5.1.0"
+    "dotenv": "^16.4.5",
+    "mongodb": "^6.4.0"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "typescript": "^5.0.3",
-    "ts-node": "^10.9.1",
-    "@types/mongodb": "^4.0.7"
+    "@types/node": "^20.11.24",
+    "typescript": "^5.3.3"
   },
   "smithery": {
     "name": "mongo-mcp",
-    "version": "1.0.25",
+    "version": "1.0.27",
     "type": "mcp",
     "connections": {
       "default": {
@@ -42,31 +36,31 @@
         "config": {
           "uri": {
             "type": "string",
-            "description": "MongoDB 连接字符串",
+            "description": "MongoDB connection string",
             "required": true,
             "env": "MONGODB_URI"
           },
           "database": {
             "type": "string",
-            "description": "数据库名称",
+            "description": "Database name",
             "required": true,
             "env": "MONGODB_DATABASE"
           },
           "collection": {
             "type": "string",
-            "description": "集合名称",
+            "description": "Collection name",
             "default": "default",
             "env": "MONGODB_COLLECTION"
           },
           "query": {
             "type": "object",
-            "description": "查询条件",
+            "description": "Query conditions",
             "default": {},
             "env": "MONGODB_QUERY"
           },
           "limit": {
             "type": "number",
-            "description": "返回文档数量限制",
+            "description": "Maximum number of documents to return",
             "default": 10,
             "env": "MONGODB_LIMIT"
           }
@@ -75,28 +69,21 @@
     },
     "commands": {
       "connect": {
-        "description": "连接到 MongoDB 数据库",
+        "description": "Connect to MongoDB database",
         "connection": "default",
         "parameters": []
       },
       "find": {
-        "description": "查询集合中的文档",
+        "description": "Query documents in collection",
         "connection": "default",
-        "parameters": [
-          "collection",
-          "query",
-          "limit"
-        ]
+        "parameters": ["collection", "query", "limit"]
       }
     },
     "startCommand": {
       "type": "stdio",
       "configSchema": {
         "type": "object",
-        "required": [
-          "uri",
-          "database"
-        ],
+        "required": ["uri", "database"],
         "properties": {
           "uri": {
             "type": "string",
@@ -123,7 +110,7 @@
           }
         }
       },
-      "commandFunction": "(config) => ({ command: 'node', args: ['dist/server.js'], env: { MONGODB_URI: config.uri, MONGODB_DATABASE: config.database, MONGODB_COLLECTION: config.collection, MONGODB_QUERY: JSON.stringify(config.query), MONGODB_LIMIT: config.limit.toString() } })"
+      "commandFunction": "(config) => ({command: 'node',args: ['dist/server.js'],env: {MONGODB_URI: config.uri,MONGODB_DATABASE: config.database,MONGODB_COLLECTION: config.collection,MONGODB_QUERY: JSON.stringify(config.query),MONGODB_LIMIT: config.limit.toString()}})"
     }
   }
 }
