@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 from pydantic import BaseModel, ValidationError, Field
 from typing import Optional, Dict, Any
 import json
+from pathlib import Path
 
 class ConnectToMongoDBParams(BaseModel):
     connectionString: str
@@ -16,13 +17,7 @@ class FindDocumentsParams(BaseModel):
     limit: Optional[int] = 10
 
 async def connect_to_mongodb(params: ConnectToMongoDBParams):
-    """
-    Connect to a MongoDB database using a connection string
-    :param params: Parameters including connectionString and database
-    :return: Connection status
-    """
     try:
-        # Simulate connection details
         host = urlparse(params.connectionString).hostname
         connection_details = {
             'host': host,
@@ -48,23 +43,7 @@ async def connect_to_mongodb(params: ConnectToMongoDBParams):
         }
 
 async def find_documents(params: FindDocumentsParams):
-    """
-    Find documents in a MongoDB collection based on a query
-    :param params: Parameters including connectionString, database, collection, query, and limit
-    :return: Query results
-    """
     try:
-        # Simulate the API call to a MongoDB service
-        api_url = 'https://api.mongodb-service.example/query'
-        query_params = {
-            'connectionString': params.connectionString,
-            'database': params.database,
-            'collection': params.collection,
-            'query': params.query,
-            'limit': params.limit
-        }
-
-        # Simulated response
         mock_results = [
             {'id': '1', 'name': 'Sample Document 1', 'createdAt': datetime.utcnow().isoformat()},
             {'id': '2', 'name': 'Sample Document 2', 'createdAt': datetime.utcnow().isoformat()}
@@ -87,39 +66,35 @@ async def find_documents(params: FindDocumentsParams):
         }
 
 async def main():
-    # Example usage
     def get_mcp_config():
-    config_path = Path('mcp.json')
-    
-    if not config_path.is_file():
-        raise FileNotFoundError("Configuration file 'mcp.json' not found.")
-    
-    with config_path.open('r') as file:
-        config_data = json.load(file)
-    
-    return {
-        'connectionString': config_data.get('connectionString', 'mongodb://localhost:27017'),
-        'database': config_data.get('database', 'mydatabase'),
-        'collection': config_data.get('collection', 'mycollection'),
-        'query': config_data.get('query', {'name': 'Sample'}),
-        'limit': config_data.get('limit', 5)
-    }
+        config_path = Path('mcp.json')
+        
+        if not config_path.is_file():
+            raise FileNotFoundError("Configuration file 'mcp.json' not found.")
+        
+        with config_path.open('r') as file:
+            config_data = json.load(file)
+        
+        return {
+            'connectionString': config_data.get('connectionString', 'mongodb://localhost:27017'),
+            'database': config_data.get('database', 'mydatabase'),
+            'collection': config_data.get('collection', 'mycollection'),
+            'query': config_data.get('query', {'name': 'Sample'}),
+            'limit': config_data.get('limit', 5)
+        }
 
     config = get_mcp_config()
 
     try:
-        # Connect to MongoDB
         connect_params = ConnectToMongoDBParams(**config)
         connection_result = await connect_to_mongodb(connect_params)
         print(connection_result)
 
-        # Find documents
         find_params = FindDocumentsParams(**config)
         query_result = await find_documents(find_params)
         print(query_result)
     except ValidationError as e:
         print('Validation error:', e)
 
-# Run the main function
 import asyncio
 asyncio.run(main())
