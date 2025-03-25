@@ -89,14 +89,21 @@ async def find_documents(params: FindDocumentsParams):
 async def main():
     # Example usage
     def get_mcp_config():
-        # Simulate fetching configuration from MCP
-        return {
-            'connectionString': 'mongodb://localhost:27017',
-            'database': 'mydatabase',
-            'collection': 'mycollection',
-            'query': {'name': 'Sample'},
-            'limit': 5
-        }
+    config_path = Path('mcp.json')
+    
+    if not config_path.is_file():
+        raise FileNotFoundError("Configuration file 'mcp.json' not found.")
+    
+    with config_path.open('r') as file:
+        config_data = json.load(file)
+    
+    return {
+        'connectionString': config_data.get('connectionString', 'mongodb://localhost:27017'),
+        'database': config_data.get('database', 'mydatabase'),
+        'collection': config_data.get('collection', 'mycollection'),
+        'query': config_data.get('query', {'name': 'Sample'}),
+        'limit': config_data.get('limit', 5)
+    }
 
     config = get_mcp_config()
 
