@@ -70,7 +70,7 @@ class MongoMCP {
     }
     async connect(config) {
         try {
-            this.client = await mongodb_1.MongoClient.connect(config.connectionString);
+            this.client = await mongodb_1.MongoClient.connect(config.uri);
             this.db = this.client.db(config.database);
             return {
                 success: true,

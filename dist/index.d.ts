@@ -1,5 +1,5 @@
-interface MongoConfig {
-    connectionString: string;
+interface ConnectionConfig {
+    uri: string;
     database: string;
     collection?: string;
     query?: Record<string, any>;
@@ -17,11 +17,11 @@ declare class MongoMCP {
     static getInstance(): MongoMCP;
     private delay;
     private getClient;
-    connect(config: MongoConfig): Promise<{
+    connect(config: ConnectionConfig): Promise<{
         success: boolean;
         message: string;
     }>;
-    find(config: MongoConfig): Promise<any[]>;
+    find(config: ConnectionConfig): Promise<any[]>;
     close(): Promise<void>;
 }
 export declare const mcp: MongoMCP;
