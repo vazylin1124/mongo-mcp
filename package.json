@@ -32,9 +32,9 @@
     "ts-node": "^10.9.1",
     "@types/mongodb": "^4.0.7"
   },
-  "smithery": {
+  "mcp": {
     "name": "mongo-mcp",
-    "version": "1.0.15",
+    "version": "1.0.21",
     "type": "mcp",
     "connections": {
       "default": {
@@ -82,11 +82,7 @@
       "find": {
         "description": "查询集合中的文档",
         "connection": "default",
-        "parameters": [
-          "collection",
-          "query",
-          "limit"
-        ]
+        "parameters": ["collection", "query", "limit"]
       }
     }
   }
