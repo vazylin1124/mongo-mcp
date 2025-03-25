@@ -1,0 +1,54 @@
+{
+  "name": "mongo-mcp",
+  "version": "1.0.17",
+  "type": "mcp",
+  "connections": {
+    "default": {
+      "type": "mongodb",
+      "config": {
+        "uri": {
+          "type": "string",
+          "description": "MongoDB 连接字符串",
+          "required": true,
+          "env": "MONGODB_URI"
+        },
+        "database": {
+          "type": "string",
+          "description": "数据库名称",
+          "required": true,
+          "env": "MONGODB_DATABASE"
+        },
+        "collection": {
+          "type": "string",
+          "description": "集合名称",
+          "default": "default",
+          "env": "MONGODB_COLLECTION"
+        },
+        "query": {
+          "type": "object",
+          "description": "查询条件",
+          "default": {},
+          "env": "MONGODB_QUERY"
+        },
+        "limit": {
+          "type": "number",
+          "description": "返回文档数量限制",
+          "default": 10,
+          "env": "MONGODB_LIMIT"
+        }
+      }
+    }
+  },
+  "commands": {
+    "connect": {
+      "description": "连接到 MongoDB 数据库",
+      "connection": "default",
+      "parameters": []
+    },
+    "find": {
+      "description": "查询集合中的文档",
+      "connection": "default",
+      "parameters": ["collection", "query", "limit"]
+    }
+  }
+} 
