@@ -17,8 +17,11 @@ declare class MongoMCP {
     private client;
     private isConnecting;
     private connectionPromise;
+    private maxRetries;
+    private retryDelay;
     private constructor();
     static getInstance(): MongoMCP;
+    private delay;
     private getClient;
     connect(params: MCPConfig): Promise<MCPResponse>;
     find(params: MCPConfig): Promise<MCPResponse>;
