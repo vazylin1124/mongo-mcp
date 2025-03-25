@@ -1,9 +1,5 @@
 # Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
 
-name: mongo-mcp
-version: 1.0.32
-type: mcp
-
 startCommand:
   type: stdio
   configSchema:
