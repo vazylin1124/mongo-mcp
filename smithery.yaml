@@ -1,85 +1,52 @@
 # Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
 
 name: mongo-mcp
-version: 1.0.31
+version: 1.0.32
 type: mcp
-
-connections:
-  - name: default
-    type: mongodb
-    config:
-      uri:
-        type: string
-        description: MongoDB connection string
-        required: true
-      database:
-        type: string
-        description: Database name
-        required: true
-      collection:
-        type: string
-        description: Collection name
-        default: default
-      query:
-        type: object
-        description: Query conditions
-        default: {}
-      limit:
-        type: number
-        description: Maximum number of documents to return
-        default: 10
-
-commands:
-  - name: connect
-    description: Connect to MongoDB database
-    connection: default
-    parameters: []
-  - name: find
-    description: Query documents in collection
-    connection: default
-    parameters: ["collection", "query", "limit"]
 
 startCommand:
   type: stdio
   configSchema:
+    # JSON Schema defining the configuration options for the MCP.
     type: object
     required:
-      - uri
-      - database
+      - mongoUri
+      - mongoDatabase
     properties:
-      uri:
+      mongoUri:
         type: string
         description: MongoDB connection string
-      database:
+      mongoDatabase:
         type: string
-        description: Database name
-      collection:
+        description: MongoDB database name
+      mongoCollection:
         type: string
-        description: Collection name
+        description: MongoDB collection name
         default: default
-      query:
+      mongoQuery:
         type: object
-        description: Query conditions
+        description: MongoDB query conditions
         default: {}
-      limit:
+      mongoLimit:
         type: number
         description: Maximum number of documents to return
         default: 10
   commandFunction: |
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
     (config) => ({
       command: 'node',
       args: ['dist/server.js'],
       env: {
-        MONGODB_URI: config.uri,
-        MONGODB_DATABASE: config.database,
-        MONGODB_COLLECTION: config.collection,
-        MONGODB_QUERY: JSON.stringify(config.query),
-        MONGODB_LIMIT: config.limit.toString()
+        MONGODB_URI: config.mongoUri,
+        MONGODB_DATABASE: config.mongoDatabase,
+        MONGODB_COLLECTION: config.mongoCollection,
+        MONGODB_QUERY: JSON.stringify(config.mongoQuery),
+        MONGODB_LIMIT: config.mongoLimit.toString()
       }
     })
   exampleConfig:
-    uri: mongodb://localhost:27017
-    database: test
-    collection: default
-    query: {}
-    limit: 10 
+    mongoUri: mongodb://localhost:27017
+    mongoDatabase: test
+    mongoCollection: default
+    mongoQuery: {}
+    mongoLimit: 10
