@@ -1,14 +1,14 @@
 {
   "name": "@vazylin1124/mongo-mcp",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "MongoDB Management Control Panel for Cursor",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "mongo-mcp": "./dist/server.js"
+    "@vazylin1124/mongo-mcp": "./dist/server.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && chmod +x dist/server.js",
     "start": "ts-node src/server.ts",
     "dev": "ts-node src/server.ts",
     "test": "jest",

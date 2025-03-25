@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
@@ -35,37 +36,35 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("./index");
 const dotenv = __importStar(require("dotenv"));
+// 加载环境变量
 dotenv.config();
 async function main() {
+    const config = {
+        connectionString: process.env.connectionString || '',
+        database: process.env.database || '',
+        collection: process.env.collection || 'default',
+        query: process.env.query ? JSON.parse(process.env.query) : {},
+        limit: process.env.limit ? parseInt(process.env.limit) : 10
+    };
+    // 监听命令行参数
+    const command = process.argv[2] || 'connect';
     try {
-        const config = {
-            connectionString: process.env.MONGODB_URI || 'mongodb://localhost:27017',
-            database: process.env.MONGODB_DATABASE || 'test',
-            collection: process.env.MONGODB_COLLECTION || 'default',
-            query: {},
-            limit: 10
-        };
-        console.log('Connecting with config:', {
-            ...config,
-            connectionString: '***hidden***' // 隐藏敏感信息
-        });
-        // 测试连接
-        const connectResult = await index_1.mcp.connect(config);
-        console.log('Connection result:', connectResult);
-        if (!connectResult.isError) {
-            // 测试查询
-            console.log('Attempting to query collection:', config.collection);
-            const findResult = await index_1.mcp.find(config);
-            console.log('Find result:', findResult);
+        switch (command) {
+            case 'connect':
+                const connectResult = await index_1.mcp.connect(config);
+                console.log(JSON.stringify(connectResult, null, 2));
+                break;
+            case 'find':
+                const findResult = await index_1.mcp.find(config);
+                console.log(JSON.stringify(findResult, null, 2));
+                break;
+            default:
+                console.error('Unknown command:', command);
+                process.exit(1);
         }
-        // 关闭连接
-        await index_1.mcp.close();
     }
     catch (error) {
-        console.error('Detailed error:', error);
-        if (error instanceof Error) {
-            console.error('Error stack:', error.stack);
-        }
+        console.error('Error:', error);
         process.exit(1);
     }
 }
