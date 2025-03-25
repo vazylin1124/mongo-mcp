@@ -1,6 +1,6 @@
 {
   "name": "@vazylin1124/mongo-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MongoDB Management Control Panel for Cursor",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -61,11 +61,18 @@
     "commands": {
       "connect": {
         "description": "连接到 MongoDB 数据库",
-        "parameters": ["connectionString", "database"]
+        "parameters": [
+          "connectionString",
+          "database"
+        ]
       },
       "find": {
         "description": "查询集合中的文档",
-        "parameters": ["collection", "query", "limit"]
+        "parameters": [
+          "collection",
+          "query",
+          "limit"
+        ]
       }
     }
   }
