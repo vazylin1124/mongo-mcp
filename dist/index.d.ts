@@ -1,9 +1,25 @@
 interface ConnectionConfig {
-    uri: string;
-    database: string;
-    collection?: string;
-    query?: Record<string, any>;
-    limit?: number;
+    mongoUri: string;
+    mongoDatabase: string;
+    mongoCollection?: string;
+    mongoQuery?: Record<string, any>;
+    mongoLimit?: number;
+}
+interface JsonRpcRequest {
+    jsonrpc: string;
+    id: number | string;
+    method: string;
+    params: any;
+}
+interface JsonRpcResponse {
+    jsonrpc: string;
+    id: number | string;
+    result?: any;
+    error?: {
+        code: number;
+        message: string;
+        data?: any;
+    };
 }
 declare class MongoMCP {
     private client;
@@ -14,6 +30,8 @@ declare class MongoMCP {
     }>;
     find(config: ConnectionConfig): Promise<any[]>;
     close(): Promise<void>;
+    handleJsonRpcRequest(request: JsonRpcRequest): Promise<JsonRpcResponse>;
+    getToolList(): any[];
 }
 export declare const mcp: MongoMCP;
 export {};
