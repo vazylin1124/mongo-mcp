@@ -1,8 +1,58 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
 name: mongo-mcp
-version: 1.0.28
+version: 1.0.29
 type: mcp
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - uri
+      - database
+    properties:
+      uri:
+        type: string
+        description: MongoDB connection string
+      database:
+        type: string
+        description: Database name
+      collection:
+        type: string
+        description: Collection name
+        default: default
+      query:
+        type: object
+        description: Query conditions
+        default: {}
+      limit:
+        type: number
+        description: Maximum number of documents to return
+        default: 10
+  commandFunction: |
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    (config) => ({
+      command: 'node',
+      args: ['dist/server.js'],
+      env: {
+        MONGODB_URI: config.uri,
+        MONGODB_DATABASE: config.database,
+        MONGODB_COLLECTION: config.collection,
+        MONGODB_QUERY: JSON.stringify(config.query),
+        MONGODB_LIMIT: config.limit.toString()
+      }
+    })
+  exampleConfig:
+    uri: mongodb://localhost:27017
+    database: test
+    collection: default
+    query: {}
+    limit: 10
+
 connections:
-  - name: default
+  default:
     type: mongodb
     config:
       uri:
@@ -29,52 +79,12 @@ connections:
         type: number
         description: Maximum number of documents to return
         default: 10
-        env: MONGODB_LIMIT
 commands:
-  - name: connect
+  connect:
     description: Connect to MongoDB database
     connection: default
     parameters: []
-  - name: find
+  find:
     description: Query documents in collection
     connection: default
-    parameters: ["collection", "query", "limit"]
-
-startCommand:
-  type: stdio
-  configSchema:
-    type: object
-    required:
-      - uri
-      - database
-    properties:
-      uri:
-        type: string
-        description: MongoDB connection string
-      database:
-        type: string
-        description: Database name
-      collection:
-        type: string
-        description: Collection name
-        default: default
-      query:
-        type: object
-        description: Query conditions
-        default: {}
-      limit:
-        type: number
-        description: Maximum number of documents to return
-        default: 10
-  commandFunction: |
-    (config) => ({
-      command: 'node',
-      args: ['dist/server.js'],
-      env: {
-        MONGODB_URI: config.uri,
-        MONGODB_DATABASE: config.database,
-        MONGODB_COLLECTION: config.collection,
-        MONGODB_QUERY: JSON.stringify(config.query),
-        MONGODB_LIMIT: config.limit.toString()
-      }
-    }) 
+    parameters: ["collection", "query", "limit"] 
