@@ -2,34 +2,64 @@
 
 import { mcp } from './index';
 import * as dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // 加载环境变量
 dotenv.config();
+
+interface ConnectionConfig {
+  uri: string;
+  database: string;
+  collection?: string;
+  query?: Record<string, any>;
+  limit?: number;
+}
+
+interface SmitheryConfig {
+  mcps: {
+    mongo: {
+      package: string;
+      connections: {
+        default: ConnectionConfig;
+      };
+    };
+  };
+}
 
 async function main() {
   // 获取命令行参数
   const args = process.argv.slice(2);
   const command = args[0] || 'connect';
 
-  // 从环境变量构建配置
-  const config = {
-    uri: process.env.MONGODB_URI || '',
-    database: process.env.MONGODB_DATABASE || '',
-    collection: process.env.MONGODB_COLLECTION || 'default',
-    query: process.env.MONGODB_QUERY ? JSON.parse(process.env.MONGODB_QUERY) : {},
-    limit: process.env.MONGODB_LIMIT ? parseInt(process.env.MONGODB_LIMIT) : 10
-  };
+  // 尝试读取配置文件
+  let config: ConnectionConfig;
+  try {
+    const configPath = path.resolve(process.cwd(), 'smithery.config.json');
+    const configContent = fs.readFileSync(configPath, 'utf8');
+    const smitheryConfig: SmitheryConfig = JSON.parse(configContent);
+    config = smitheryConfig.mcps.mongo.connections.default;
+  } catch (error) {
+    // 如果配置文件不存在或无效，使用环境变量
+    config = {
+      uri: process.env.MONGODB_URI || '',
+      database: process.env.MONGODB_DATABASE || '',
+      collection: process.env.MONGODB_COLLECTION || 'default',
+      query: process.env.MONGODB_QUERY ? JSON.parse(process.env.MONGODB_QUERY) : {},
+      limit: process.env.MONGODB_LIMIT ? parseInt(process.env.MONGODB_LIMIT) : 10
+    };
+  }
 
   // 检查必需的配置
   if (!config.uri) {
     console.error('Error: MongoDB connection string is required');
-    console.error('Please set MONGODB_URI environment variable');
+    console.error('Please set MONGODB_URI environment variable or provide it in smithery.config.json');
     process.exit(1);
   }
 
   if (!config.database) {
     console.error('Error: Database name is required');
-    console.error('Please set MONGODB_DATABASE environment variable');
+    console.error('Please set MONGODB_DATABASE environment variable or provide it in smithery.config.json');
     process.exit(1);
   }
 
