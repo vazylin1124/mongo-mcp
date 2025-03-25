@@ -1,0 +1,21 @@
+{
+  "name": "mongo-mcp",
+  "type": "mcp",
+  "config": {
+    "connectionString": "mongodb://root:2yyMXA5tdkP2WU8mq9Z@dds-uf6abe1d2a6195f41548-pub.mongodb.rds.aliyuncs.com:3717/admin?authSource=admin",
+    "database": "mongodb_wtzw_chapter_content_diff",
+    "collection": "default",
+    "query": {},
+    "limit": 10
+  },
+  "commands": {
+    "connect": {
+      "description": "连接到 MongoDB 数据库",
+      "parameters": ["connectionString", "database"]
+    },
+    "find": {
+      "description": "查询集合中的文档",
+      "parameters": ["collection", "query", "limit"]
+    }
+  }
+} 

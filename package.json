@@ -1,20 +1,20 @@
 {
   "name": "@vazylin1124/mongo-mcp",
   "version": "1.0.0",
-  "description": "MongoDB Management Control Panel for Smithery",
+  "description": "MongoDB Management Control Panel for Cursor",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
+    "start": "ts-node src/server.ts",
+    "dev": "ts-node src/server.ts",
     "test": "jest",
     "prepare": "npm run build"
   },
   "keywords": [
     "mongodb",
     "mcp",
-    "smithery",
+    "cursor",
     "database"
   ],
   "author": "vazylin1124",
@@ -29,47 +29,43 @@
     "ts-node": "^10.9.1",
     "@types/mongodb": "^4.0.7"
   },
-  "publishConfig": {
-    "access": "public"
-  },
-  "smithery": {
+  "cursor": {
     "type": "mcp",
-    "client": "claude",
     "config": {
       "connectionString": {
         "type": "string",
-        "description": "MongoDB connection string",
+        "description": "MongoDB 连接字符串",
         "required": true
       },
       "database": {
         "type": "string",
-        "description": "Database name",
+        "description": "数据库名称",
         "required": true
       },
       "collection": {
         "type": "string",
-        "description": "Collection name",
+        "description": "集合名称",
         "default": "default"
       },
       "query": {
         "type": "object",
-        "description": "Query filter",
+        "description": "查询条件",
         "default": {}
       },
       "limit": {
         "type": "number",
-        "description": "Maximum number of documents to return",
+        "description": "返回文档数量限制",
         "default": 10
       }
     },
     "commands": {
       "connect": {
-        "description": "Connect to MongoDB database",
+        "description": "连接到 MongoDB 数据库",
         "parameters": ["connectionString", "database"]
       },
       "find": {
-        "description": "Find documents in collection",
-        "parameters": ["connectionString", "database", "collection", "query", "limit"]
+        "description": "查询集合中的文档",
+        "parameters": ["collection", "query", "limit"]
       }
     }
   }

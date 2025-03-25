@@ -29,6 +29,14 @@ interface SmitheryResponse {
   isError?: boolean;
 }
 
+interface MCPResponse {
+  content: Array<{
+    type: string;
+    text: string;
+  }>;
+  isError?: boolean;
+}
+
 const SMITHERY_CONFIG: SmitheryConfig = {
   name: "mongo-mcp-smithery",
   version: "1.0.0",
@@ -47,6 +55,8 @@ class MongoMCP {
   private client: MongoClient | null = null;
   private config: SmitheryConfig;
   private configPath: string;
+  private connectionString: string = '';
+  private database: string = '';
 
   constructor() {
     this.config = SMITHERY_CONFIG;
@@ -76,12 +86,23 @@ class MongoMCP {
     }
   }
 
-  async connect(params: MCPConfig): Promise<SmitheryResponse> {
-    try {
+  async ensureConnection(params: MCPConfig): Promise<void> {
+    if (this.connectionString !== params.connectionString || !this.client) {
+      if (this.client) {
+        await this.client.close();
+      }
       this.client = new MongoClient(params.connectionString);
       await this.client.connect();
+      this.connectionString = params.connectionString;
+      this.database = params.database;
+    }
+  }
+
+  async connect(params: MCPConfig): Promise<MCPResponse> {
+    try {
+      await this.ensureConnection(params);
       
-      const db = this.client.db(params.database);
+      const db = this.client!.db(params.database);
       await db.command({ ping: 1 });
 
       const url = new URL(params.connectionString);
@@ -90,25 +111,27 @@ class MongoMCP {
       return {
         content: [{
           type: 'text',
-          text: `Successfully connected to MongoDB database '${params.database}' at ${host}`
+          text: `成功连接到 MongoDB 数据库 '${params.database}' (${host})`
         }]
       };
-    } catch (error) {
+    } catch (error: any) {
+      this.client = null;
+      this.connectionString = '';
+      this.database = '';
+      
       return {
         content: [{
           type: 'text',
-          text: `Failed to connect to MongoDB: ${error}`
+          text: `连接 MongoDB 失败: ${error.message || error}`
         }],
         isError: true
       };
     }
   }
 
-  async find(params: MCPConfig): Promise<SmitheryResponse> {
+  async find(params: MCPConfig): Promise<MCPResponse> {
     try {
-      if (!this.client) {
-        await this.connect(params);
-      }
+      await this.ensureConnection(params);
 
       const db = this.client!.db(params.database);
       const collection = db.collection(params.collection || 'default');
@@ -120,14 +143,21 @@ class MongoMCP {
       return {
         content: [{
           type: 'text',
-          text: `Found ${results.length} documents in collection '${params.collection}':\n\n${JSON.stringify(results, null, 2)}`
+          text: `在集合 '${params.collection}' 中找到 ${results.length} 个文档:\n\n${JSON.stringify(results, null, 2)}`
         }]
       };
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message && error.message.includes('topology')) {
+        this.client = null;
+        this.connectionString = '';
+        this.database = '';
+        return this.find(params);
+      }
+      
       return {
         content: [{
           type: 'text',
-          text: `Failed to find documents: ${error}`
+          text: `查询文档失败: ${error.message || error}`
         }],
         isError: true
       };
@@ -138,8 +168,21 @@ class MongoMCP {
     if (this.client) {
       await this.client.close();
       this.client = null;
+      this.connectionString = '';
+      this.database = '';
     }
   }
 }
+
+process.on('exit', async () => {
+  const instance = mcp as MongoMCP;
+  await instance.close();
+});
+
+process.on('SIGINT', async () => {
+  const instance = mcp as MongoMCP;
+  await instance.close();
+  process.exit(0);
+});
 
 export const mcp = new MongoMCP(); 
