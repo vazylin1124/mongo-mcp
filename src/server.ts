@@ -11,27 +11,25 @@ async function main() {
   const args = process.argv.slice(2);
   const command = args[0] || 'connect';
 
-  // 从环境变量和命令行参数构建配置
+  // 从环境变量构建配置
   const config = {
-    connectionString: process.env.MONGODB_URI || process.env.connectionString || '',
-    database: process.env.MONGODB_DATABASE || process.env.database || '',
-    collection: process.env.MONGODB_COLLECTION || process.env.collection || 'default',
-    query: process.env.MONGODB_QUERY ? JSON.parse(process.env.MONGODB_QUERY) : 
-           process.env.query ? JSON.parse(process.env.query) : {},
-    limit: process.env.MONGODB_LIMIT ? parseInt(process.env.MONGODB_LIMIT) :
-           process.env.limit ? parseInt(process.env.limit) : 10
+    connectionString: process.env.MONGODB_URI || '',
+    database: process.env.MONGODB_DATABASE || '',
+    collection: process.env.MONGODB_COLLECTION || 'default',
+    query: process.env.MONGODB_QUERY ? JSON.parse(process.env.MONGODB_QUERY) : {},
+    limit: process.env.MONGODB_LIMIT ? parseInt(process.env.MONGODB_LIMIT) : 10
   };
 
   // 检查必需的配置
   if (!config.connectionString) {
     console.error('Error: MongoDB connection string is required');
-    console.error('Please set MONGODB_URI or connectionString environment variable');
+    console.error('Please set MONGODB_URI environment variable');
     process.exit(1);
   }
 
   if (!config.database) {
     console.error('Error: Database name is required');
-    console.error('Please set MONGODB_DATABASE or database environment variable');
+    console.error('Please set MONGODB_DATABASE environment variable');
     process.exit(1);
   }
 

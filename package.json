@@ -1,10 +1,12 @@
 {
   "name": "@vazylin1124/mongo-mcp",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "MongoDB Management Control Panel for Cursor",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "bin": "./dist/server.js",
+  "bin": {
+    "mongo-mcp": "./dist/server.js"
+  },
   "scripts": {
     "build": "tsc && chmod +x dist/server.js",
     "start": "ts-node src/server.ts",
@@ -36,44 +38,42 @@
       "connectionString": {
         "type": "string",
         "description": "MongoDB 连接字符串",
-        "required": true
+        "required": true,
+        "env": "MONGODB_URI"
       },
       "database": {
         "type": "string",
         "description": "数据库名称",
-        "required": true
+        "required": true,
+        "env": "MONGODB_DATABASE"
       },
       "collection": {
         "type": "string",
         "description": "集合名称",
-        "default": "default"
+        "default": "default",
+        "env": "MONGODB_COLLECTION"
       },
       "query": {
         "type": "object",
         "description": "查询条件",
-        "default": {}
+        "default": {},
+        "env": "MONGODB_QUERY"
       },
       "limit": {
         "type": "number",
         "description": "返回文档数量限制",
-        "default": 10
+        "default": 10,
+        "env": "MONGODB_LIMIT"
       }
     },
     "commands": {
       "connect": {
         "description": "连接到 MongoDB 数据库",
-        "parameters": [
-          "connectionString",
-          "database"
-        ]
+        "parameters": ["connectionString", "database"]
       },
       "find": {
         "description": "查询集合中的文档",
-        "parameters": [
-          "collection",
-          "query",
-          "limit"
-        ]
+        "parameters": ["collection", "query", "limit"]
       }
     }
   }
